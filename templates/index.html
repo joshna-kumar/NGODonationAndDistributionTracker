@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NGO Donation & Distribution Tracker | Immutable SHA-256 Ledger</title>
+  
+  <!-- Google Fonts & FontAwesome CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Lavender Pastel CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <div id="app-layout">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-icon"><i class="fas fa-hands-helping"></i></div>
+        <div>
+          <div class="brand-title">NGO Tracker</div>
+          <div class="brand-subtitle">SHA-256 Ledger System</div>
+        </div>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="menu-category">Navigation</li>
+        
+        <li class="menu-item role-nav" data-roles="admin,staff,auditor" data-view="dashboard">
+          <i class="fas fa-chart-line"></i> Dashboard & Analytics
+        </li>
+
+        <li class="menu-item role-nav" data-roles="admin,staff,auditor" data-view="donors">
+          <i class="fas fa-users-cog"></i> Donor Management
+        </li>
+
+        <li class="menu-item role-nav" data-roles="admin,staff,donor,auditor" data-view="donations">
+          <i class="fas fa-donate"></i> Donation Recording
+        </li>
+
+        <li class="menu-item role-nav" data-roles="admin,staff,auditor" data-view="inventory">
+          <i class="fas fa-boxes"></i> Inventory Stock
+        </li>
+
+        <li class="menu-item role-nav" data-roles="admin,staff,beneficiary,auditor" data-view="beneficiaries">
+          <i class="fas fa-user-friends"></i> Beneficiaries
+        </li>
+
+        <li class="menu-item role-nav" data-roles="admin,staff,beneficiary,auditor" data-view="distributions">
+          <i class="fas fa-truck-loading"></i> Aid Distributions
+        </li>
+
+        <li class="menu-category">Integrity & Audit</li>
+
+        <li class="menu-item role-nav" data-roles="admin,staff,auditor" data-view="ledger">
+          <i class="fas fa-cubes"></i> Blockchain Ledger
+        </li>
+
+        <li class="menu-item role-nav" data-roles="admin,staff,auditor" data-view="reports">
+          <i class="fas fa-file-export"></i> Reports & Export
+        </li>
+
+        <li class="menu-item role-nav" data-roles="admin,staff,volunteer" data-view="volunteer-tasks">
+          <i class="fas fa-route"></i> Volunteer Tasks
+        </li>
+
+        <li class="menu-item role-nav" data-roles="admin,auditor" data-view="audit">
+          <i class="fas fa-list-alt"></i> Activity Audit Logs
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="user-profile-badge">
+          <div class="user-avatar" id="user-avatar-initial">A</div>
+          <div class="user-info">
+            <div class="user-name" id="user-display-name">NGO Administrator</div>
+            <div class="user-role" id="user-display-role">ADMIN</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-wrapper">
+      <!-- TOP HEADER BAR -->
+      <header class="top-header">
+        <div class="page-title-group">
+          <h2 id="current-page-title">Executive Overview & Analytics</h2>
+        </div>
+
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="global-search-input" placeholder="Search records, donors, hashes...">
+        </div>
+
+        <div class="header-actions">
+          <div id="auth-buttons-guest" style="display:none; gap:8px;">
+            <button class="btn btn-outline btn-sm" onclick="App.openModal('login-modal')">Log In</button>
+            <button class="btn btn-primary btn-sm" onclick="App.openModal('register-modal')">Sign Up</button>
+          </div>
+
+          <div id="auth-buttons-user" style="display:flex; gap:8px;">
+            <button class="header-icon-btn" onclick="App.navigateTo('ledger')" title="Ledger Status">
+              <i class="fas fa-shield-alt"></i>
+              <span class="badge-dot"></span>
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="Auth.logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="content-body">
+
+        <!-- VIEW 1: DASHBOARD & ANALYTICS -->
+        <section id="view-dashboard" class="view-section">
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon"><i class="fas fa-wallet"></i></div>
+              <div class="metric-data">
+                <h4>Verified Funds</h4>
+                <div class="value" id="dash-monetary-val">₹0.00</div>
+                <div class="sub-text">Monetary donations</div>
+              </div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-icon"><i class="fas fa-cubes"></i></div>
+              <div class="metric-data">
+                <h4>Ledger Blocks</h4>
+                <div class="value" id="dash-ledger-blocks">0 Blocks</div>
+                <div class="sub-text">SHA-256 cryptographically sealed</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Donations by Category</h3>
+                </div>
+                <canvas id="chart-category-split" height="220"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Inventory Stock Levels vs Demand</h3>
+                </div>
+                <canvas id="chart-inventory-levels" height="200"></canvas>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Beneficiaries by Category</h3>
+                </div>
+                <canvas id="chart-beneficiary-category" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 3: DONOR MANAGEMENT -->
+        <section id="view-donors" class="view-section">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Registered Donors</h3>
+              <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <button class="btn btn-primary staff-donation-action" id="make-donation-btn" onclick="DonationsUI.openDonationModal()" style="background:linear-gradient(135deg,#1a73e8,#0d47a1);border:none;">
+                  <i class="fas fa-hand-holding-heart mr-1"></i> Make Donation
+                </button>
+                <button class="btn btn-outline" onclick="App.openModal('add-donor-modal')">
+                  <i class="fas fa-user-plus mr-1"></i> Add Donor Profile
+                </button>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Preferred Cause</th>
+                    <th>Total Donated</th>
+                    <th>Donations</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="donors-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 4: DONATION RECORDING -->
+        <section id="view-donations" class="view-section">
+          <!-- Real-Time Goods Tracker for Donor -->
+          <div id="donor-goods-tracking-section" style="display:none;margin-bottom:24px;"></div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Donation Records & Blockchain Receipts</h3>
+              <button class="btn btn-primary donor-donation-action" onclick="DonationsUI.openDonationModal()">
+                <i class="fas fa-plus-circle mr-1"></i> Record New Donation
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Receipt #</th>
+                    <th>Donor &amp; Contact</th>
+                    <th>Category &amp; Goods</th>
+                    <th>Amount / Qty</th>
+                    <th>Status &amp; Tracking</th>
+                    <th>Evidence Review</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="donations-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 5: INVENTORY MANAGEMENT -->
+        <section id="view-inventory" class="view-section">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Warehouse Stock Inventory</h3>
+              <button class="btn btn-primary" onclick="App.openModal('add-inventory-modal')">
+                <i class="fas fa-box-open mr-1"></i> Add Stock Item
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Item Name</th>
+                    <th>Available Stock</th>
+                    <th>Demand</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inventory-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 6: BENEFICIARY MANAGEMENT -->
+        <section id="view-beneficiaries" class="view-section">
+          <div id="beneficiary-self-service" style="display:none;">
+            <div id="beneficiary-self-profile" class="card"></div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">Request Assistance</h3></div>
+              <div class="card-body">
+                <form id="beneficiary-request-form" onsubmit="BeneficiariesUI.submitAidRequest(event)">
+                  <div class="form-group">
+                    <label>Need category</label>
+                    <select name="category" class="form-control" required>
+                      <option value="">Select a need</option>
+                      <option>Food</option>
+                      <option>Medical Care</option>
+                      <option>Shelter</option>
+                      <option>Education Support</option>
+                      <option>Clothing</option>
+                      <option>Emergency Relief</option>
+                      <option>Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Urgency</label>
+                    <select name="urgency" class="form-control">
+                      <option>Normal</option><option>Low</option><option>High</option><option>Urgent</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Describe what you need</label>
+                    <textarea name="description" class="form-control" rows="3" maxlength="2000" required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Send Request</button>
+                </form>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h3 class="card-title">My Assistance Requests</h3></div>
+              <div id="beneficiary-my-requests" class="card-body"></div>
+            </div>
+          </div>
+
+          <div id="beneficiary-staff-view">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title" id="beneficiary-directory-title">Beneficiary Directory</h3>
+              <button class="btn btn-primary" onclick="App.openModal('add-beneficiary-modal')">
+                <i class="fas fa-id-card mr-1"></i> Register Beneficiary
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Eligibility Category</th>
+                    <th>Status</th>
+                    <th>Aid Received</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="beneficiaries-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card" id="aid-request-review-card" style="display:none;">
+            <div class="card-header"><h3 class="card-title">Assistance Requests</h3></div>
+            <div id="beneficiary-request-queue" class="card-body"></div>
+          </div>
+          </div>
+        </section>
+
+        <!-- VIEW 7: DISTRIBUTION TRACKING -->
+        <section id="view-distributions" class="view-section">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Aid Distribution Log</h3>
+              <button class="btn btn-primary" onclick="DistributionsUI.openDispatchModal()">
+                <i class="fas fa-paper-plane mr-1"></i> Log Distribution Dispatch
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Dispatch ID</th>
+                    <th>Beneficiary</th>
+                    <th>Location</th>
+                    <th>Dispatched Items</th>
+                    <th>Status</th>
+                    <th>Ledger Hash</th>
+                  </tr>
+                </thead>
+                <tbody id="distributions-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: VOLUNTEER TASKS -->
+        <section id="view-volunteer-tasks" class="view-section">
+          <!-- Pending Goods Donations Card for Staff -->
+          <div id="staff-pending-goods-card" class="card mb-4" style="display:none;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background:#f4f0fa;border-bottom:1px solid #eae4f5;">
+              <div>
+                <h3 class="card-title mb-1" style="color:var(--deep-accent);"><i class="fas fa-boxes text-primary mr-2"></i> Goods Donations Awaiting Volunteer Assignment</h3>
+                <small class="text-muted">Goods donations received with donor phone, address, and item details. Assign any registered volunteer below.</small>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="VolunteerTasksUI.loadPendingGoodsDonations()">
+                <i class="fas fa-sync-alt"></i> Refresh List
+              </button>
+            </div>
+            <div class="table-responsive p-0">
+              <table class="custom-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Donor Name</th>
+                    <th>Contact Phone</th>
+                    <th>Pickup Address</th>
+                    <th>Donated Goods &amp; Qty</th>
+                    <th>Notes / Instructions</th>
+                    <th>Assign Volunteer</th>
+                  </tr>
+                </thead>
+                <tbody id="staff-pending-goods-table-body">
+                  <tr><td colspan="6" class="text-center text-muted p-4">Loading pending goods donations...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="volunteer-task-assignment" class="card" style="display:none;">
+            <div class="card-header">
+              <h3 class="card-title">Assign Volunteer Task</h3>
+            </div>
+            <div class="card-body">
+              <form id="volunteer-task-form" onsubmit="VolunteerTasksUI.assignTask(event)">
+                <div class="form-group">
+                  <label>Volunteer</label>
+                  <select name="volunteer_id" id="volunteer-select" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                  <label>Task</label>
+                  <select name="task_type" class="form-control" onchange="VolunteerTasksUI.toggleTaskType(this.value)">
+                    <option value="pickup">Pick up donated goods from donor</option>
+                    <option value="delivery">Deliver inventory to beneficiary</option>
+                  </select>
+                </div>
+                <div id="volunteer-pickup-fields" style="display:none;">
+                  <div class="form-group">
+                    <label>Donor</label>
+                    <select name="donor_id" id="volunteer-donor-select" class="form-control" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Item name</label>
+                    <input name="item_name" class="form-control" maxlength="120">
+                  </div>
+                  <div class="form-group">
+                    <label>Category</label>
+                    <input name="category" class="form-control" maxlength="80">
+                  </div>
+                  <div class="form-group">
+                    <label>Expected quantity</label>
+                    <input name="expected_quantity" type="number" min="0.01" step="any" class="form-control">
+                  </div>
+                  <div class="form-group">
+                    <label>Unit</label>
+                    <input name="unit" class="form-control" value="units">
+                  </div>
+                </div>
+                <div id="volunteer-delivery-fields" style="display:none;">
+                  <div class="form-group">
+                    <label>Beneficiary</label>
+                    <select name="beneficiary_id" id="volunteer-beneficiary-select" class="form-control" disabled></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Inventory item</label>
+                    <select name="inventory_item_id" id="volunteer-inventory-select" class="form-control" disabled></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Quantity</label>
+                    <input name="delivery_quantity" type="number" min="0.01" step="any" class="form-control" disabled>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Task notes</label>
+                  <textarea name="notes" class="form-control" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Assign Task</button>
+              </form>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Volunteer Task Board</h3>
+              <button class="btn btn-outline btn-sm" onclick="VolunteerTasksUI.loadTasks()" title="Refresh tasks and GPS status">
+                <i class="fas fa-sync-alt"></i> Refresh
+              </button>
+            </div>
+            <div id="volunteer-tasks-list" class="card-body"></div>
+          </div>
+        </section>
+
+        <!-- VIEW 8: BLOCKCHAIN LEDGER (VISUAL CENTERPIECE) -->
+        <section id="view-ledger" class="view-section">
+          <div id="ledger-verification-banner" class="ledger-status-banner valid">
+            <div class="status-left">
+              <div class="status-shield-icon"><i class="fas fa-shield-alt"></i></div>
+              <div>
+                <h3 class="mb-1"><i class="fas fa-check-circle text-success mr-1"></i> SHA-256 Immutable Ledger Verification</h3>
+                <p class="mb-0 text-muted">Every transaction is cryptographically linked. Any database alteration breaks hash pointers.</p>
+              </div>
+            </div>
+            <div>
+              <button id="verify-ledger-btn" class="btn btn-primary" onclick="LedgerUI.verifyIntegrity()">
+                <i class="fas fa-shield-alt mr-2"></i> Verify Ledger Integrity
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-link text-lavender mr-2"></i> Connected Block Chain Visualizer</h3>
+              <div>
+                <span class="badge badge-lavender mr-2">Genesis -> Tip</span>
+                <button class="btn btn-outline btn-sm" onclick="LedgerUI.loadLedger()"><i class="fas fa-sync-alt"></i> Refresh Chain</button>
+              </div>
+            </div>
+            
+            <div id="blockchain-chain-container" class="blockchain-chain p-3">
+              <!-- Rendered dynamically by ledger.js -->
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 9: REPORTS & EXPORT -->
+        <section id="view-reports" class="view-section">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Audit Reports & Export</h3>
+            </div>
+            <p class="text-muted mb-4">Export official CSV files for external audits and compliance reporting.</p>
+            
+            <div class="row">
+              <div class="col-md-3 mb-3">
+                <div class="p-4 border rounded text-center" style="background-color: var(--light-lavender);">
+                  <i class="fas fa-file-csv fa-2x text-lavender mb-2"></i>
+                  <h5>Donations Report</h5>
+                  <a href="/api/reports/export-csv?type=donations" class="btn btn-primary btn-sm mt-2" download>
+                    <i class="fas fa-download mr-1"></i> Export CSV
+                  </a>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="p-4 border rounded text-center" style="background-color: var(--light-lavender);">
+                  <i class="fas fa-truck-loading fa-2x text-lavender mb-2"></i>
+                  <h5>Distributions Report</h5>
+                  <a href="/api/reports/export-csv?type=distributions" class="btn btn-primary btn-sm mt-2" download>
+                    <i class="fas fa-download mr-1"></i> Export CSV
+                  </a>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="p-4 border rounded text-center" style="background-color: var(--light-lavender);">
+                  <i class="fas fa-boxes fa-2x text-lavender mb-2"></i>
+                  <h5>Inventory Audit Report</h5>
+                  <a href="/api/reports/export-csv?type=inventory" class="btn btn-primary btn-sm mt-2" download>
+                    <i class="fas fa-download mr-1"></i> Export CSV
+                  </a>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3">
+                <div class="p-4 border rounded text-center" style="background-color: var(--light-lavender);">
+                  <i class="fas fa-cubes fa-2x text-lavender mb-2"></i>
+                  <h5>Ledger Hash Chain CSV</h5>
+                  <a href="/api/reports/export-csv?type=ledger" class="btn btn-primary btn-sm mt-2" download>
+                    <i class="fas fa-download mr-1"></i> Export CSV
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW 10: AUDIT LOGS -->
+        <section id="view-audit" class="view-section">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">System Activity Log</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>User & Role</th>
+                    <th>Action</th>
+                    <th>Target Entity</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- LOGIN MODAL -->
+  <div class="modal-backdrop" id="login-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>User Authentication</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('login-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="Auth.login(this.email.value, this.password.value, this.role.value); return false;">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" class="form-control" placeholder="admin@ngo.org" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <div class="form-group">
+            <label>Account Role <small class="text-muted">(not required for Admin)</small></label>
+            <select name="role" class="form-control">
+              <option value="">Select your role</option>
+              <option value="donor">Donor</option>
+              <option value="beneficiary">Beneficiary</option>
+              <option value="staff">NGO Staff</option>
+              <option value="auditor">Auditor</option>
+              <option value="volunteer">Volunteer</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mt-3" style="width: 100%;">Sign In</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER MODAL -->
+  <div class="modal-backdrop" id="register-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Create New Account</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('register-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="Auth.register({name: this.name.value, email: this.email.value, password: this.password.value, role: this.role.value, phone: this.phone.value, location: this.location ? this.location.value : '', eligibility_category: this.eligibility_category ? this.eligibility_category.value : ''}); return false;">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Account Role</label>
+            <select name="role" class="form-control" onchange="Auth.toggleRegistrationRole(this.value)">
+              <option value="donor">Donor</option>
+              <option value="volunteer">Volunteer</option>
+              <option value="beneficiary">Beneficiary</option>
+            </select>
+          </div>
+          <div id="beneficiary-registration-fields" style="display:none;">
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" name="location" class="form-control" placeholder="Town, district, or shelter">
+            </div>
+            <div class="form-group">
+              <label>Eligibility category</label>
+              <select name="eligibility_category" class="form-control">
+                <option value="">Select a category</option>
+                <option>Disabled Persons</option>
+                <option>Low Income Family</option>
+                <option>Education Support</option>
+                <option>Emergency Relief</option>
+                <option>Medical Care</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phone" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mt-3" style="width: 100%;">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD DONOR MODAL -->
+  <div class="modal-backdrop" id="add-donor-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Add Donor Profile</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('add-donor-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="DonorsUI.handleCreate(event)">
+          <div class="form-group">
+            <label>Donor Name / Organization</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="text" name="phone" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Physical Address</label>
+            <input type="text" name="address" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Preferred Causes</label>
+            <input type="text" name="preferred_causes" class="form-control" value="Education & Emergency Relief">
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mt-3" style="width: 100%;">Save Donor Profile</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG DONATION MODAL -->
+  <div class="modal-backdrop" id="add-donation-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Log Donation Entry</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('add-donation-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="DonationsUI.handleLogDonation(event)" enctype="multipart/form-data">
+          <div class="form-group" id="log-donation-donor-section">
+            <label>Donor Selection</label>
+            <select name="donor_id" id="log-donation-donor-select" class="form-control" required></select>
+          </div>
+          <div class="form-group" id="donor-self-note" style="display:none;">
+            <div class="text-sm text-muted">As a donor, your account will automatically be linked to the donation record.</div>
+          </div>
+          <div class="form-group">
+            <label for="log-donation-category"><strong>Donation Category</strong></label>
+            <select name="category" id="log-donation-category" class="form-control" onchange="DonationsUI.handleCategoryChange(this.value)">
+              <option value="Money" selected>Money (UPI / Google Pay)</option>
+              <option value="Goods">Goods (Physical Supplies / Items)</option>
+              <option value="Food">Food Supplies</option>
+              <option value="Clothes">Clothing &amp; Garments</option>
+              <option value="Medical">Medical Care &amp; Kits</option>
+              <option value="Education Supplies">Education &amp; School Supplies</option>
+              <option value="Blood">Blood Supplies</option>
+            </select>
+          </div>
+
+          <div id="monetary-group" class="form-group">
+            <label for="donation-amount-input"><strong>Amount to be entered (₹)</strong></label>
+            <div style="position:relative;margin-bottom:10px;">
+              <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-weight:700;font-size:1.3rem;color:#1a73e8;">₹</span>
+              <input type="number" step="any" min="1" id="donation-amount-input" name="amount" class="form-control" placeholder="Enter amount, e.g. 500" value="500" style="padding-left:36px;font-size:1.2rem;font-weight:600;border:2px solid #e0e4ec;border-radius:12px;">
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="DonationsUI.setQuickAmount(100)">₹100</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="DonationsUI.setQuickAmount(500)">₹500</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="DonationsUI.setQuickAmount(1000)">₹1,000</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="DonationsUI.setQuickAmount(2500)">₹2,500</button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="DonationsUI.setQuickAmount(5000)">₹5,000</button>
+            </div>
+
+            <div class="form-group mb-3">
+              <label>Notes / Purpose (optional)</label>
+              <input type="text" id="donation-notes-input" name="notes" class="form-control" placeholder="e.g. For Education Support & Emergency Relief">
+            </div>
+
+            <button type="button" id="pay-via-gpay-btn" class="gpay-pay-btn-hero" onclick="DonationsUI.payViaGPay()" style="width:100%;background:#ffffff;color:#3c4043;border:1.5px solid #dadce0;border-radius:24px;padding:12px 20px;font-size:1.05rem;font-weight:600;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 6px rgba(0,0,0,0.08);cursor:pointer;transition:all 0.2s;">
+              <svg viewBox="0 0 24 24" width="22" height="22">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Pay via GPay</span>
+            </button>
+            <div style="text-align:center;margin-top:8px;font-size:0.75rem;color:#5f6368;">
+              <i class="fas fa-shield-alt" style="color:#1a73e8;"></i> Redirects to Google Pay UPI payment page
+            </div>
+          </div>
+
+          <div id="inkind-group" class="form-group" style="display:none;">
+            <!-- Donor Contact & Pickup Box -->
+            <div class="p-3 mb-3 rounded" style="background:#f4f0ff;border:1px solid #dcd2f7;">
+              <div class="d-flex align-items-center mb-1">
+                <i class="fas fa-truck-pickup text-primary mr-2" style="font-size:1.1rem;"></i>
+                <h5 class="mb-0 text-lavender-dark" style="font-weight:700;">Volunteer Pickup &amp; Contact Details</h5>
+              </div>
+              <p class="text-xs text-muted mb-3">Since you are donating goods, NGO staff will assign a verified volunteer to pick them up from your address. Enter or confirm your contact information:</p>
+
+              <div class="form-group mb-2">
+                <label class="text-xs font-weight-bold">Donor Phone Number <span class="text-danger">*</span></label>
+                <input type="tel" name="donor_phone" id="donation-donor-phone" class="form-control form-control-sm" placeholder="e.g. +91 98765 43210">
+              </div>
+
+              <div class="form-group mb-1">
+                <label class="text-xs font-weight-bold">Full Pickup Address <span class="text-danger">*</span></label>
+                <textarea name="donor_address" id="donation-donor-address" class="form-control form-control-sm" rows="2" placeholder="House/Flat No, Street, Landmark, Area, City, PIN code"></textarea>
+              </div>
+            </div>
+
+            <div class="form-group mb-2">
+              <label><strong>Goods Item Name / Description <span class="text-danger">*</span></strong></label>
+              <input type="text" name="item_name" id="donation-item-name" class="form-control" placeholder="e.g. 50 First Aid Kits, Rice Bags, Warm Blankets">
+            </div>
+
+            <div class="row">
+              <div class="col-6">
+                <label>Quantity <span class="text-danger">*</span></label>
+                <input type="number" step="any" min="0.01" name="quantity" id="donation-quantity" class="form-control" placeholder="e.g. 25">
+              </div>
+              <div class="col-6">
+                <label>Unit of Measure</label>
+                <input type="text" name="unit" id="donation-unit" class="form-control" value="units" placeholder="kits, boxes, kg, units">
+              </div>
+            </div>
+
+            <div class="form-group mt-2 mb-2">
+              <label>Photo of Donated Goods <small class="text-muted">(Optional)</small></label>
+              <input type="file" name="product_photo" class="form-control" accept="image/png,image/jpeg,image/webp" capture="environment">
+            </div>
+
+            <div class="form-group mb-3">
+              <label>Special Instructions for Volunteer</label>
+              <textarea name="notes" class="form-control" rows="2" placeholder="e.g. Available after 2 PM, call security at entrance"></textarea>
+            </div>
+
+            <button type="submit" id="record-inkind-btn" class="btn btn-primary w-100 mt-2" style="width: 100%;">
+              <i class="fas fa-hand-holding-heart mr-1"></i> Submit Goods Donation for Pickup
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD INVENTORY MODAL -->
+  <div class="modal-backdrop" id="add-inventory-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Add Warehouse Inventory Item</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('add-inventory-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="InventoryUI.handleAddStock(event)">
+          <div class="form-group">
+            <label>Item Name</label>
+            <input type="text" name="name" class="form-control" required placeholder="e.g. Hygiene & Sanitation Kits">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" name="category" class="form-control" required value="Food Supplies">
+          </div>
+          <div class="form-group">
+            <label>Initial Quantity</label>
+            <input type="number" step="any" name="quantity" class="form-control" value="100">
+          </div>
+          <div class="form-group">
+            <label>Unit of Measure</label>
+            <input type="text" name="unit" class="form-control" value="kits">
+          </div>
+          <div class="form-group">
+            <label>Demand</label>
+            <input type="number" step="any" name="low_stock_threshold" class="form-control" value="20">
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mt-3" style="width: 100%;">Save Inventory Item</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER BENEFICIARY MODAL -->
+  <div class="modal-backdrop" id="add-beneficiary-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Register Beneficiary</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('add-beneficiary-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="BeneficiariesUI.handleRegister(event)">
+          <div class="form-group">
+            <label>Full Name / Community Group</label>
+            <input type="text" name="name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Location / Camp / District</label>
+            <input type="text" name="location" class="form-control" required placeholder="North District Shelter, Sector 4">
+          </div>
+          <div class="form-group">
+            <label>Eligibility Need Category</label>
+            <select name="eligibility_category" class="form-control">
+              <option value="Disabled Persons">Disabled Persons</option>
+              <option value="Low Income Family">Low Income Family</option>
+              <option value="Education Support">Education Support</option>
+              <option value="Emergency Relief">Emergency Relief</option>
+              <option value="Medical Care">Medical Care</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Contact Phone / Email</label>
+            <input type="text" name="contact" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" name="email" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Assessment Notes</label>
+            <textarea name="notes" class="form-control" rows="2"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 mt-3" style="width: 100%;">Register Beneficiary</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISPATCH AID MODAL -->
+  <div class="modal-backdrop" id="dispatch-modal">
+    <div class="modal-container" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3>Log Aid Distribution Dispatch</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('dispatch-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="DistributionsUI.handleDispatchSubmit(event)">
+          <div class="form-group">
+            <label>Target Beneficiary</label>
+            <select id="dispatch-beneficiary-select" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label>Distribution Location</label>
+            <input type="text" id="dispatch-location-input" class="form-control" placeholder="Specific site location">
+          </div>
+          
+          <label class="font-weight-bold mt-3">Select Inventory Items & Quantities to Dispatch:</label>
+          <div id="dispatch-inventory-items-container" class="border rounded p-3 mb-3" style="max-height: 200px; overflow-y: auto; background-color: var(--light-lavender);"></div>
+
+           <div class="form-group">
+             <label>Monetary Aid Amount (₹) (optional)</label>
+             <input type="number" step="any" min="0" id="dispatch-amount-input" class="form-control" placeholder="Amount in INR">
+             <small class="text-muted">Allocates monetary donations to this beneficiary. Must not exceed available money stock.</small>
+           </div>
+
+          <div class="form-group">
+            <label>Dispatch Notes</label>
+            <textarea id="dispatch-notes-input" class="form-control" rows="2"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 mt-3" style="width: 100%;">Execute Dispatch & Seal Block</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK RAW DETAILS MODAL -->
+  <div class="modal-backdrop" id="block-details-modal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Ledger Block Specification</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('block-details-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="block-details-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- DONATION RECEIPT MODAL -->
+  <div class="modal-backdrop" id="receipt-modal">
+    <div class="modal-container" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3>Official Donation Receipt</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('receipt-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="receipt-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- DONOR PROFILE MODAL -->
+  <div class="modal-backdrop" id="donor-profile-modal">
+    <div class="modal-container" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3>Donor Profile & History</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('donor-profile-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="donor-profile-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- BENEFICIARY PROFILE MODAL -->
+  <div class="modal-backdrop" id="beneficiary-profile-modal">
+    <div class="modal-container" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3>Beneficiary Profile & History</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('beneficiary-profile-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="beneficiary-profile-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- INVENTORY LOGS MODAL -->
+  <div class="modal-backdrop" id="inventory-logs-modal">
+    <div class="modal-container" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3>Inventory Movement Log</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('inventory-logs-modal')">&times;</button>
+      </div>
+      <div class="modal-body" id="inventory-logs-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div id="toast-container"></div>
+
+  <!-- ============================================================ -->
+  <!-- DONATION TYPE CHOOSER MODAL                                  -->
+  <!-- ============================================================ -->
+  <div class="modal-backdrop" id="donate-type-modal">
+    <div class="modal-container" style="max-width:560px;">
+      <div class="modal-header">
+        <h3><i class="fas fa-hand-holding-heart mr-2" style="color:#5A4A82;"></i> Make a Donation</h3>
+        <button class="modal-close-btn" onclick="App.closeModal('donate-type-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted mb-4" style="text-align:center;">Choose the type of donation you'd like to make</p>
+        <div id="donate-type-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <button class="donate-type-card" onclick="DonateFlowUI.selectType('Monetary','Money')">
+            <div class="donate-type-icon" style="background:linear-gradient(135deg,#4CAF50,#81C784);"><i class="fas fa-rupee-sign"></i></div>
+            <span class="donate-type-label">Money</span>
+            <span class="donate-type-sub">UPI / GPay</span>
+          </button>
+          <button class="donate-type-card" onclick="DonateFlowUI.selectType('In-Kind','Food')">
+            <div class="donate-type-icon" style="background:linear-gradient(135deg,#FF9800,#FFB74D);"><i class="fas fa-utensils"></i></div>
+            <span class="donate-type-label">Food</span>
+            <span class="donate-type-sub">Grains, meals…</span>
+          </button>
+          <button class="donate-type-card" onclick="DonateFlowUI.selectType('In-Kind','Clothes')">
+            <div class="donate-type-icon" style="background:linear-gradient(135deg,#9C27B0,#CE93D8);"><i class="fas fa-tshirt"></i></div>
+            <span class="donate-type-label">Clothes</span>
+            <span class="donate-type-sub">Garments, fabric…</span>
+          </button>
+          <button class="donate-type-card" onclick="DonateFlowUI.selectType('In-Kind','Medical')">
+            <div class="donate-type-icon" style="background:linear-gradient(135deg,#F44336,#EF9A9A);"><i class="fas fa-first-aid"></i></div>
+            <span class="donate-type-label">Medical</span>
+            <span class="donate-type-sub">Medicines, kits…</span>
+          </button>
+          <button class="donate-type-card" onclick="DonateFlowUI.selectType('In-Kind','Education Supplies')">
+            <div class="donate-type-icon" style="background:linear-gradient(135deg,#2196F3,#90CAF9);"><i class="fas fa-book"></i></div>
+            <span class="donate-type-label">Education</span>
+            <span class="donate-type-sub">Books, stationery…</span>
+          </button>
+          <button class="donate-type-card" onclick="DonateFlowUI.selectType('In-Kind','General')">
+            <div class="donate-type-icon" style="background:linear-gradient(135deg,#607D8B,#B0BEC5);"><i class="fas fa-box-open"></i></div>
+            <span class="donate-type-label">Other</span>
+            <span class="donate-type-sub">Any supplies…</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- UPI / GPAY PAYMENT MODAL                                     -->
+  <!-- ============================================================ -->
+  <div class="modal-backdrop" id="upi-payment-modal">
+    <div class="modal-container" style="max-width:420px;">
+      <div class="modal-header" style="background:linear-gradient(135deg,#1a73e8,#0d47a1);border-radius:16px 16px 0 0;padding:16px 20px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:38px;height:38px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-mobile-alt" style="color:#1a73e8;font-size:16px;"></i>
+          </div>
+          <div>
+            <h3 style="color:#fff;margin:0;font-size:1.05rem;font-family:sans-serif;">Google Pay</h3>
+            <div style="color:rgba(255,255,255,0.75);font-size:0.72rem;">Secure UPI Payment</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="App.closeModal('upi-payment-modal')" style="color:#fff;opacity:0.85;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:0;">
+
+        <!-- Step 1: Amount Entry -->
+        <div id="upi-step-amount">
+          <div style="background:#f8f9ff;padding:24px 24px 16px;">
+            <div style="text-align:center;margin-bottom:20px;">
+              <div style="color:#5f6368;font-size:0.8rem;margin-bottom:2px;">Paying to</div>
+              <div style="font-weight:700;font-size:1rem;color:#202124;">NGO Donation Fund</div>
+              <div style="color:#5f6368;font-size:0.75rem;">ngo@upi &nbsp;&#10003; Verified</div>
+            </div>
+            <div class="upi-amount-box">
+              <span class="upi-amount-prefix">&#8377;</span>
+              <input type="number" id="upi-amount-input" min="1" step="1" placeholder="0" class="upi-amount-field">
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px;">
+              <button class="upi-quick-btn" onclick="DonateFlowUI.setAmount(100)">&#8377;100</button>
+              <button class="upi-quick-btn" onclick="DonateFlowUI.setAmount(500)">&#8377;500</button>
+              <button class="upi-quick-btn" onclick="DonateFlowUI.setAmount(1000)">&#8377;1,000</button>
+              <button class="upi-quick-btn" onclick="DonateFlowUI.setAmount(5000)">&#8377;5,000</button>
+            </div>
+            <div style="margin-top:14px;">
+              <label style="font-size:0.8rem;color:#5f6368;">Add a note (optional)</label>
+              <input type="text" id="upi-note-input" class="form-control" style="margin-top:4px;font-size:0.88rem;" placeholder="e.g. For flood relief">
+            </div>
+          </div>
+          <div style="padding:16px 24px;">
+            <button class="btn w-100" id="upi-proceed-btn" onclick="DonateFlowUI.proceedToPin()" style="background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;border:none;border-radius:12px;padding:14px;font-size:1rem;font-weight:600;">
+              Proceed to Pay
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: UPI PIN Entry -->
+        <div id="upi-step-pin" style="display:none;">
+          <div style="background:#f8f9ff;padding:24px;text-align:center;">
+            <div style="font-size:0.82rem;color:#5f6368;margin-bottom:2px;">Total Amount</div>
+            <div id="upi-pin-amount-display" style="font-size:2rem;font-weight:700;color:#202124;margin-bottom:2px;">&#8377;0</div>
+            <div style="font-size:0.75rem;color:#5f6368;margin-bottom:20px;">To: NGO Donation Fund &bull; ngo@upi</div>
+
+            <div style="font-size:0.88rem;color:#5f6368;margin-bottom:12px;">Enter UPI PIN to authorize</div>
+            <div id="upi-pin-dots" style="display:flex;justify-content:center;gap:14px;margin-bottom:20px;">
+              <div class="upi-pin-dot"></div>
+              <div class="upi-pin-dot"></div>
+              <div class="upi-pin-dot"></div>
+              <div class="upi-pin-dot"></div>
+              <div class="upi-pin-dot"></div>
+              <div class="upi-pin-dot"></div>
+            </div>
+
+            <div class="upi-numpad">
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('1')">1</button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('2')">2<span>ABC</span></button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('3')">3<span>DEF</span></button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('4')">4<span>GHI</span></button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('5')">5<span>JKL</span></button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('6')">6<span>MNO</span></button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('7')">7<span>PQRS</span></button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('8')">8<span>TUV</span></button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('9')">9<span>WXYZ</span></button>
+              <button class="upi-num-key" style="visibility:hidden;" disabled></button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinDigit('0')">0</button>
+              <button class="upi-num-key" onclick="DonateFlowUI.pinBack()" style="color:#1a73e8;"><i class="fas fa-backspace"></i></button>
+            </div>
+
+            <div id="upi-pin-processing" style="display:none;padding:16px 0 0;">
+              <div class="upi-spinner"></div>
+              <div style="margin-top:12px;color:#5f6368;font-size:0.88rem;">Processing your payment…</div>
+            </div>
+          </div>
+          <div style="padding:12px 24px;text-align:center;">
+            <button onclick="DonateFlowUI.backToAmount()" style="background:none;border:none;color:#1a73e8;font-size:0.84rem;cursor:pointer;"><i class="fas fa-arrow-left mr-1"></i>Back</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PAYMENT SUCCESS SCREEN                                       -->
+  <!-- ============================================================ -->
+  <div class="modal-backdrop" id="payment-success-modal">
+    <div class="modal-container" style="max-width:400px;text-align:center;">
+      <div class="modal-body" style="padding:40px 32px;">
+
+        <div class="success-ring-outer">
+          <div class="success-ring-inner">
+            <svg class="success-checkmark" viewBox="0 0 52 52">
+              <circle class="success-checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+              <path class="success-checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+          </div>
+        </div>
+
+        <h2 style="margin:20px 0 6px;color:#202124;font-size:1.4rem;">Payment Successful!</h2>
+        <div id="pay-success-amount" style="font-size:2.4rem;font-weight:800;color:#1a73e8;margin-bottom:4px;">&#8377;500</div>
+        <div style="color:#5f6368;font-size:0.85rem;margin-bottom:4px;">Paid to <strong>NGO Donation Fund</strong></div>
+        <div id="pay-success-ref" style="font-size:0.75rem;color:#9aa0a6;margin-bottom:22px;">Ref: —</div>
+
+        <div style="background:#f8f9ff;border-radius:12px;padding:16px;text-align:left;margin-bottom:24px;font-size:0.85rem;">
+          <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #e8eaf0;margin-bottom:8px;">
+            <span style="color:#5f6368;">Category</span>
+            <span id="pay-success-category" style="font-weight:600;">Money</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid #e8eaf0;margin-bottom:8px;">
+            <span style="color:#5f6368;">Date &amp; Time</span>
+            <span id="pay-success-date" style="font-weight:600;"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span style="color:#5f6368;">Status</span>
+            <span style="color:#2E7D32;font-weight:700;"><i class="fas fa-check-circle mr-1"></i>Successful</span>
+          </div>
+        </div>
+
+        <button class="btn w-100" onclick="DonateFlowUI.goToDonorProfile()" style="background:linear-gradient(135deg,#1a73e8,#0d47a1);color:#fff;border:none;border-radius:12px;padding:14px;font-size:1rem;font-weight:600;margin-bottom:10px;">
+          <i class="fas fa-user-circle mr-2"></i> View Donor Profile
+        </button>
+        <button class="btn btn-outline w-100" onclick="DonateFlowUI.donateAgain()" style="border-radius:12px;padding:12px;font-size:0.92rem;">
+          <i class="fas fa-heart mr-2"></i> Donate Again
+        </button>
+      </div>
+    </div>
+  <!-- ============================================================ -->
+  <!-- TRACK GOODS PICKUP MODAL                                     -->
+  <!-- ============================================================ -->
+  <div class="modal-backdrop" id="track-goods-modal">
+    <div class="modal-container" style="max-width: 680px;">
+      <div class="modal-header" style="background:#f4f0fa;border-bottom:1px solid #eae4f5;">
+        <div class="d-flex align-items-center">
+          <div style="width:36px;height:36px;border-radius:50%;background:#5A4A82;color:#fff;display:flex;align-items:center;justify-content:center;margin-right:12px;">
+            <i class="fas fa-truck-pickup"></i>
+          </div>
+          <div>
+            <h3 class="mb-0" style="color:#2D2540;font-size:1.15rem;">Live Goods Pickup Tracking</h3>
+            <small class="text-muted">Real-time status updates &amp; volunteer GPS location</small>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="App.closeModal('track-goods-modal')">&times;</button>
+      </div>
+      <div class="modal-body p-4" id="track-goods-modal-body">
+        <div class="text-center p-4 text-muted">Loading live tracking details...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS MODULES -->
+  <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ledger.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/modules.js') }}?v=6"></script>
+  <script src="{{ url_for('static', filename='js/donate_flow.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+<svg width="800" height="560" viewBox="0 0 800 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="560" rx="40" fill="#F4F0FA"/>
+  <circle cx="170" cy="150" r="90" fill="#E6DFF5"/>
+  <circle cx="620" cy="120" r="72" fill="#C9B8E8" opacity="0.9"/>
+  <rect x="120" y="300" width="520" height="180" rx="34" fill="#FFFFFF" stroke="#DCD0F2" stroke-width="3"/>
+  <path d="M224 116C256 96 322 76 386 96C450 116 506 176 502 228" stroke="#5A4A82" stroke-width="12" stroke-linecap="round"/>
+  <path d="M300 110L320 140" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <path d="M375 76L395 106" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <path d="M420 90C440 130 470 138 502 160" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <rect x="190" y="320" width="180" height="120" rx="22" fill="#E6DFF5"/>
+  <rect x="430" y="320" width="180" height="120" rx="22" fill="#C9B8E8"/>
+  <path d="M225 360H345" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <path d="M225 400H345" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <path d="M465 360H585" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <path d="M465 400H585" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="250" cy="260" r="24" fill="#FFFFFF" stroke="#C9B8E8" stroke-width="8"/>
+  <circle cx="545" cy="180" r="24" fill="#FFFFFF" stroke="#C9B8E8" stroke-width="8"/>
+  <path d="M160 190C176 170 210 158 244 156C278 155 310 170 320 206" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <path d="M520 190C552 162 596 150 636 168" stroke="#5A4A82" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="380" cy="460" r="24" fill="#6B5B95"/>
+  <circle cx="308" cy="440" r="16" fill="#FFFFFF"/>
+  <circle cx="482" cy="440" r="16" fill="#FFFFFF"/>
+  <path d="M325 480C335 500 365 510 395 500" stroke="#5A4A82" stroke-width="8" stroke-linecap="round"/>
+  <text x="400" y="450" font-family="Poppins, sans-serif" font-size="32" font-weight="700" fill="#5A4A82">Transparent</text>
+  <text x="400" y="490" font-family="Inter, sans-serif" font-size="22" fill="#6B5B95">Donation Chain</text>
+</svg>

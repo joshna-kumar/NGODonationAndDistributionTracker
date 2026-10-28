@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Pay — Secure UPI Payment</title>
+  
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --gpay-blue: #1a73e8;
+      --gpay-blue-hover: #1557b0;
+      --gpay-dark: #202124;
+      --gpay-gray: #5f6368;
+      --gpay-light-gray: #f1f3f4;
+      --gpay-border: #dadce0;
+      --gpay-green: #137333;
+      --gpay-green-bg: #e6f4ea;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #f8fafd;
+      color: var(--gpay-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    /* Container Card */
+    .gpay-wrapper {
+      width: 100%;
+      max-width: 440px;
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    /* App Header */
+    .gpay-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--gpay-border);
+      background: #ffffff;
+    }
+
+    .gpay-back-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--gpay-dark);
+      font-size: 1.1rem;
+      padding: 6px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .gpay-back-btn:hover {
+      background: var(--gpay-light-gray);
+    }
+
+    .gpay-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: #3c4043;
+    }
+
+    .gpay-security-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      color: var(--gpay-gray);
+      background: var(--gpay-light-gray);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    /* Recipient Card */
+    .gpay-recipient-card {
+      text-align: center;
+      padding: 24px 24px 12px;
+    }
+
+    .gpay-avatar {
+      width: 68px;
+      height: 68px;
+      background: linear-gradient(135deg, #1a73e8, #0d47a1);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      margin: 0 auto 12px;
+      box-shadow: 0 4px 14px rgba(26, 115, 232, 0.3);
+      position: relative;
+    }
+
+    .gpay-verified-badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      background: #ffffff;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1a73e8;
+      font-size: 0.85rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .gpay-paying-to {
+      font-size: 0.82rem;
+      color: var(--gpay-gray);
+      margin-bottom: 2px;
+    }
+
+    .gpay-recipient-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gpay-dark);
+      margin-bottom: 2px;
+    }
+
+    .gpay-recipient-upi {
+      font-size: 0.82rem;
+      color: var(--gpay-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .gpay-verified-pill {
+      background: var(--gpay-green-bg);
+      color: var(--gpay-green);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 8px;
+    }
+
+    /* Amount Section */
+    .gpay-amount-section {
+      padding: 12px 24px 16px;
+      text-align: center;
+    }
+
+    .gpay-amount-input-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .gpay-currency {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--gpay-dark);
+    }
+
+    .gpay-amount-input {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--gpay-dark);
+      border: none;
+      outline: none;
+      background: transparent;
+      max-width: 200px;
+      text-align: left;
+      padding: 0;
+    }
+
+    .gpay-amount-input::-webkit-outer-spin-button,
+    .gpay-amount-input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    /* Quick Chips */
+    .gpay-chips-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .gpay-chip {
+      background: var(--gpay-light-gray);
+      border: 1px solid var(--gpay-border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--gpay-dark);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .gpay-chip:hover {
+      background: #e8f0fe;
+      border-color: #1a73e8;
+      color: #1a73e8;
+    }
+
+    .gpay-note-input {
+      width: 100%;
+      background: #f8f9fa;
+      border: 1px solid var(--gpay-border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      color: var(--gpay-dark);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .gpay-note-input:focus {
+      border-color: var(--gpay-blue);
+      background: #ffffff;
+    }
+
+    /* Bank Account Card */
+    .gpay-bank-card {
+      margin: 0 24px 16px;
+      background: #f8f9fa;
+      border: 1px solid var(--gpay-border);
+      border-radius: 16px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .gpay-bank-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .gpay-bank-icon {
+      width: 36px;
+      height: 36px;
+      background: #ffffff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      color: #0d47a1;
+      font-size: 1.1rem;
+    }
+
+    .gpay-bank-title {
+      font-weight: 600;
+      font-size: 0.86rem;
+      color: var(--gpay-dark);
+    }
+
+    .gpay-bank-sub {
+      font-size: 0.74rem;
+      color: var(--gpay-gray);
+    }
+
+    /* UPI PIN Box */
+    .gpay-pin-section {
+      margin: 0 24px 20px;
+      background: #f0f4f9;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .gpay-pin-header {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--gpay-dark);
+      margin-bottom: 2px;
+    }
+
+    .gpay-pin-sub {
+      font-size: 0.72rem;
+      color: var(--gpay-gray);
+      margin-bottom: 14px;
+    }
+
+    .gpay-pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .gpay-pin-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #80868b;
+      background: transparent;
+      transition: all 0.2s;
+    }
+
+    .gpay-pin-dot.filled {
+      background: var(--gpay-blue);
+      border-color: var(--gpay-blue);
+      transform: scale(1.15);
+    }
+
+    /* Hidden PIN Input for physical typing */
+    #gpay-real-pin {
+      opacity: 0;
+      position: absolute;
+      pointer-events: none;
+      width: 1px;
+      height: 1px;
+    }
+
+    /* Onscreen keypad */
+    .gpay-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .gpay-key {
+      background: #ffffff;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--gpay-dark);
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      transition: background 0.15s, transform 0.1s;
+      user-select: none;
+    }
+
+    .gpay-key:active {
+      background: #e8f0fe;
+      transform: scale(0.96);
+    }
+
+    .gpay-key.action-key {
+      color: var(--gpay-blue);
+      font-size: 1rem;
+    }
+
+    /* Pay Button */
+    .gpay-pay-action {
+      padding: 0 24px 24px;
+    }
+
+    .gpay-pay-btn {
+      width: 100%;
+      background: var(--gpay-blue);
+      color: #ffffff;
+      border: none;
+      border-radius: 28px;
+      padding: 16px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .gpay-pay-btn:hover {
+      background: var(--gpay-blue-hover);
+      box-shadow: 0 6px 18px rgba(26, 115, 232, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .gpay-pay-btn:active {
+      transform: translateY(1px);
+    }
+
+    .gpay-pay-btn:disabled {
+      background: #dadce0;
+      color: #80868b;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* UPI Footer */
+    .gpay-footer-note {
+      text-align: center;
+      padding: 0 24px 16px;
+      font-size: 0.72rem;
+      color: var(--gpay-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    /* PROCESSING OVERLAY */
+    .gpay-processing-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #ffffff;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      padding: 32px;
+      text-align: center;
+    }
+
+    /* Google Multi-Color Spinner */
+    .gpay-spinner {
+      width: 64px;
+      height: 64px;
+      animation: gpayRotate 2s linear infinite;
+      margin-bottom: 24px;
+    }
+
+    .gpay-spinner-path {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: 0;
+      stroke-linecap: round;
+      animation: gpayDash 1.5s ease-in-out infinite, gpayColors 6s ease-in-out infinite;
+    }
+
+    @keyframes gpayRotate {
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes gpayDash {
+      0% {
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
+      }
+      50% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
+      }
+      100% {
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
+      }
+    }
+
+    @keyframes gpayColors {
+      0%, 100% { stroke: #4285F4; }
+      25% { stroke: #EA4335; }
+      50% { stroke: #FBBC05; }
+      75% { stroke: #34A853; }
+    }
+
+    /* ============================================================
+       GOOGLE PAY SUCCESS SCREEN (Blue Tick at Center)
+       ============================================================ */
+    .gpay-success-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #ffffff;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 60;
+      padding: 32px 24px;
+      text-align: center;
+      overflow-y: auto;
+    }
+
+    /* Animated Center Blue Tick */
+    .gpay-blue-tick-circle {
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      background: #1a73e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 24px rgba(26, 115, 232, 0.4);
+      position: relative;
+      animation: gpayPopScale 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .gpay-blue-tick-circle::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 3px solid rgba(26, 115, 232, 0.4);
+      animation: gpayPulseWave 1.6s ease-out infinite;
+    }
+
+    @keyframes gpayPopScale {
+      0% { transform: scale(0.2); opacity: 0; }
+      70% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes gpayPulseWave {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.4); opacity: 0; }
+    }
+
+    /* SVG Tick */
+    .gpay-checkmark-svg {
+      width: 56px;
+      height: 56px;
+    }
+
+    .gpay-checkmark-check {
+      stroke: #ffffff;
+      stroke-width: 4.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      animation: gpayDrawCheck 0.45s 0.35s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    @keyframes gpayDrawCheck {
+      to { stroke-dashoffset: 0; }
+    }
+
+    .gpay-success-title {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: #202124;
+      margin-bottom: 6px;
+    }
+
+    .gpay-success-amount {
+      font-size: 2.3rem;
+      font-weight: 800;
+      color: #1a73e8;
+      margin-bottom: 4px;
+    }
+
+    .gpay-success-recipient {
+      font-size: 0.92rem;
+      color: #5f6368;
+      margin-bottom: 2px;
+    }
+
+    .gpay-success-upi {
+      font-size: 0.78rem;
+      color: #80868b;
+      margin-bottom: 20px;
+    }
+
+    .gpay-receipt-box {
+      width: 100%;
+      background: #f8fafd;
+      border: 1px solid var(--gpay-border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: left;
+      font-size: 0.84rem;
+      margin-bottom: 24px;
+    }
+
+    .gpay-receipt-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #f1f3f4;
+    }
+
+    .gpay-receipt-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .gpay-receipt-label {
+      color: #5f6368;
+    }
+
+    .gpay-receipt-val {
+      font-weight: 600;
+      color: #202124;
+    }
+
+    .gpay-redirect-info {
+      font-size: 0.86rem;
+      color: #5f6368;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .gpay-countdown-pill {
+      background: #e8f0fe;
+      color: #1a73e8;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    .gpay-return-btn {
+      width: 100%;
+      background: #1a73e8;
+      color: #ffffff;
+      border: none;
+      border-radius: 28px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+      transition: all 0.2s;
+    }
+
+    .gpay-return-btn:hover {
+      background: #1557b0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="gpay-wrapper" id="gpay-card">
+    
+    <!-- HEADER -->
+    <header class="gpay-header">
+      <button class="gpay-back-btn" onclick="returnToDonorPage(false)" title="Back to Donor Page">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+
+      <div class="gpay-brand">
+        <!-- Google colored G icon -->
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Pay</span>
+      </div>
+
+      <div class="gpay-security-badge">
+        <i class="fas fa-shield-alt" style="color:#1a73e8;"></i> UPI
+      </div>
+    </header>
+
+    <!-- STEP 1: PAYMENT FORM -->
+    <div id="gpay-step-form">
+      
+      <!-- RECIPIENT -->
+      <div class="gpay-recipient-card">
+        <div class="gpay-avatar">
+          <i class="fas fa-hand-holding-heart"></i>
+          <div class="gpay-verified-badge" title="Verified Non-Profit">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+        <div class="gpay-paying-to">Paying to</div>
+        <div class="gpay-recipient-name">NGO Donation Fund</div>
+        <div class="gpay-recipient-upi">
+          <span>ngo.donations@okaxis</span>
+          <span class="gpay-verified-pill"><i class="fas fa-check"></i> Verified</span>
+        </div>
+      </div>
+
+      <!-- AMOUNT ENTRY -->
+      <div class="gpay-amount-section">
+        <div class="gpay-amount-input-box">
+          <span class="gpay-currency">₹</span>
+          <input type="number" id="gpay-amount-input" class="gpay-amount-input" placeholder="0" min="1" step="any" autofocus>
+        </div>
+
+        <div class="gpay-chips-row">
+          <button class="gpay-chip" onclick="setQuickAmount(100)">+₹100</button>
+          <button class="gpay-chip" onclick="setQuickAmount(500)">+₹500</button>
+          <button class="gpay-chip" onclick="setQuickAmount(1000)">+₹1,000</button>
+          <button class="gpay-chip" onclick="setQuickAmount(2500)">+₹2,500</button>
+          <button class="gpay-chip" onclick="setQuickAmount(5000)">+₹5,000</button>
+        </div>
+
+        <input type="text" id="gpay-notes-input" class="gpay-note-input" placeholder="Add a note (e.g. Education Relief Fund)">
+      </div>
+
+      <!-- BANK ACCOUNT INFO -->
+      <div class="gpay-bank-card">
+        <div class="gpay-bank-info">
+          <div class="gpay-bank-icon">
+            <i class="fas fa-university"></i>
+          </div>
+          <div>
+            <div class="gpay-bank-title">State Bank of India •••• 4821</div>
+            <div class="gpay-bank-sub">Savings Account &bull; UPI ID linked</div>
+          </div>
+        </div>
+        <i class="fas fa-check-circle" style="color:var(--gpay-blue);font-size:1.1rem;"></i>
+      </div>
+
+      <!-- UPI PIN SECTION -->
+      <div class="gpay-pin-section">
+        <div class="gpay-pin-header">Enter UPI PIN</div>
+        <div class="gpay-pin-sub">Keep your UPI PIN secure with your bank</div>
+
+        <div class="gpay-pin-dots" id="gpay-pin-dots-container" onclick="focusPinInput()">
+          <div class="gpay-pin-dot"></div>
+          <div class="gpay-pin-dot"></div>
+          <div class="gpay-pin-dot"></div>
+          <div class="gpay-pin-dot"></div>
+          <div class="gpay-pin-dot"></div>
+          <div class="gpay-pin-dot"></div>
+        </div>
+
+        <!-- Hidden real input for keyboard support -->
+        <input type="password" id="gpay-real-pin" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code">
+
+        <!-- On-screen numeric keypad -->
+        <div class="gpay-keypad">
+          <button type="button" class="gpay-key" onclick="appendPin('1')">1</button>
+          <button type="button" class="gpay-key" onclick="appendPin('2')">2</button>
+          <button type="button" class="gpay-key" onclick="appendPin('3')">3</button>
+          <button type="button" class="gpay-key" onclick="appendPin('4')">4</button>
+          <button type="button" class="gpay-key" onclick="appendPin('5')">5</button>
+          <button type="button" class="gpay-key" onclick="appendPin('6')">6</button>
+          <button type="button" class="gpay-key" onclick="appendPin('7')">7</button>
+          <button type="button" class="gpay-key" onclick="appendPin('8')">8</button>
+          <button type="button" class="gpay-key" onclick="appendPin('9')">9</button>
+          <button type="button" class="gpay-key action-key" onclick="clearPin()">C</button>
+          <button type="button" class="gpay-key" onclick="appendPin('0')">0</button>
+          <button type="button" class="gpay-key action-key" onclick="backspacePin()"><i class="fas fa-backspace"></i></button>
+        </div>
+      </div>
+
+      <!-- PAY BUTTON -->
+      <div class="gpay-pay-action">
+        <button id="gpay-pay-button" class="gpay-pay-btn" onclick="executeGPayPayment()">
+          <span>Pay</span>
+          <span id="gpay-btn-amount-label">₹500.00</span>
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="gpay-footer-note">
+        <i class="fas fa-lock" style="color:var(--gpay-blue);"></i> Powered by UPI &bull; 256-Bit Bank Grade Security
+      </div>
+
+    </div>
+
+    <!-- STEP 2: PROCESSING OVERLAY -->
+    <div class="gpay-processing-overlay" id="gpay-processing-overlay">
+      <svg class="gpay-spinner" viewBox="0 0 50 50">
+        <circle class="gpay-spinner-path" cx="25" cy="25" r="20" fill="none" stroke-width="4"></circle>
+      </svg>
+      <h3 style="font-size:1.15rem;font-weight:600;color:#202124;margin-bottom:6px;">Processing Payment…</h3>
+      <p style="font-size:0.85rem;color:#5f6368;">Contacting your bank securely via UPI</p>
+    </div>
+
+    <!-- STEP 3: PAYMENT SUCCESS SCREEN (Blue Tick at Center) -->
+    <div class="gpay-success-screen" id="gpay-success-screen">
+      
+      <!-- Big Blue Tick at the Center -->
+      <div class="gpay-blue-tick-circle">
+        <svg class="gpay-checkmark-svg" viewBox="0 0 52 52">
+          <circle cx="26" cy="26" r="25" fill="none" />
+          <path class="gpay-checkmark-check" fill="none" d="M14 27 l8 8 l16 -16" />
+        </svg>
+      </div>
+
+      <h2 class="gpay-success-title">Payment Successful!</h2>
+      <div class="gpay-success-amount" id="success-display-amount">₹500.00</div>
+      <div class="gpay-success-recipient">Paid to <strong>NGO Donation Fund</strong></div>
+      <div class="gpay-success-upi">ngo.donations@okaxis</div>
+
+      <!-- Transaction Details -->
+      <div class="gpay-receipt-box">
+        <div class="gpay-receipt-row">
+          <span class="gpay-receipt-label">UPI Transaction ID</span>
+          <span class="gpay-receipt-val" id="success-upi-ref">UPI/20261025/—</span>
+        </div>
+        <div class="gpay-receipt-row">
+          <span class="gpay-receipt-label">Paid On</span>
+          <span class="gpay-receipt-val" id="success-date-time">—</span>
+        </div>
+        <div class="gpay-receipt-row">
+          <span class="gpay-receipt-label">Paid From</span>
+          <span class="gpay-receipt-val">State Bank of India •••• 4821</span>
+        </div>
+        <div class="gpay-receipt-row">
+          <span class="gpay-receipt-label">Status</span>
+          <span class="gpay-receipt-val" style="color:#137333;font-weight:700;"><i class="fas fa-check-circle mr-1"></i> Payment Successful</span>
+        </div>
+        <div class="gpay-receipt-row">
+          <span class="gpay-receipt-label">Blockchain Hash</span>
+          <span class="gpay-receipt-val" id="success-block-hash" style="font-family:monospace;font-size:0.75rem;">—</span>
+        </div>
+      </div>
+
+      <div class="gpay-redirect-info">
+        <span>Redirecting back to donor page in</span>
+        <span class="gpay-countdown-pill" id="redirect-countdown">3</span>
+        <span>seconds...</span>
+      </div>
+
+      <button class="gpay-return-btn" onclick="returnToDonorPage(true)">
+        <i class="fas fa-check mr-2"></i> Return to Donor Page Now
+      </button>
+
+    </div>
+
+  </div>
+
+  <script>
+    // State
+    let currentPin = '';
+    let donorId = null;
+    let createdDonation = null;
+    let countdownInterval = null;
+
+    // Parse URL query params
+    const params = new URLSearchParams(window.location.search);
+    const initialAmount = params.get('amount') || '500';
+    donorId = params.get('donor_id') || null;
+    const initialNotes = params.get('notes') || '';
+
+    const amountInput = document.getElementById('gpay-amount-input');
+    const notesInput = document.getElementById('gpay-notes-input');
+    const realPinInput = document.getElementById('gpay-real-pin');
+    const btnAmountLabel = document.getElementById('gpay-btn-amount-label');
+
+    // Init inputs
+    if (initialAmount) {
+      amountInput.value = initialAmount;
+      updateAmountLabel(initialAmount);
+    }
+    if (initialNotes) {
+      notesInput.value = initialNotes;
+    }
+
+    amountInput.addEventListener('input', (e) => {
+      updateAmountLabel(e.target.value);
+    });
+
+    function setQuickAmount(amt) {
+      amountInput.value = amt;
+      updateAmountLabel(amt);
+    }
+
+    function updateAmountLabel(val) {
+      const num = parseFloat(val) || 0;
+      btnAmountLabel.textContent = '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // PIN Handlers
+    function focusPinInput() {
+      realPinInput.focus();
+    }
+
+    realPinInput.addEventListener('input', (e) => {
+      currentPin = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+      e.target.value = currentPin;
+      updatePinDots();
+    });
+
+    function appendPin(digit) {
+      if (currentPin.length < 6) {
+        currentPin += digit;
+        realPinInput.value = currentPin;
+        updatePinDots();
+      }
+    }
+
+    function backspacePin() {
+      currentPin = currentPin.slice(0, -1);
+      realPinInput.value = currentPin;
+      updatePinDots();
+    }
+
+    function clearPin() {
+      currentPin = '';
+      realPinInput.value = '';
+      updatePinDots();
+    }
+
+    function updatePinDots() {
+      const dots = document.querySelectorAll('#gpay-pin-dots-container .gpay-pin-dot');
+      dots.forEach((dot, index) => {
+        dot.classList.toggle('filled', index < currentPin.length);
+      });
+    }
+
+    // Authentic Google Pay celebration sound via Web Audio API synth chime
+    function playGPaySuccessChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+
+        // Chime tone 1: 587.33 Hz (D5)
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, now);
+        gain1.gain.setValueAtTime(0.25, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.6);
+
+        // Chime tone 2: 880 Hz (A5)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880, now + 0.12);
+        gain2.gain.setValueAtTime(0.3, now + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.12);
+        osc2.stop(now + 0.9);
+      } catch (err) {
+        console.log('Audio chime unavailable', err);
+      }
+    }
+
+    // Execute Payment
+    async function executeGPayPayment() {
+      const amount = parseFloat(amountInput.value);
+      if (!amount || amount <= 0) {
+        alert('Please enter a valid donation amount in ₹.');
+        amountInput.focus();
+        return;
+      }
+
+      if (currentPin.length < 4) {
+        alert('Please enter your 4 or 6 digit UPI PIN to authorize payment.');
+        focusPinInput();
+        return;
+      }
+
+      // Show processing overlay
+      document.getElementById('gpay-processing-overlay').style.display = 'flex';
+
+      // Brief authentic network delay (1.2 seconds) then submit to backend
+      await new Promise(r => setTimeout(r, 1200));
+
+      try {
+        const payload = {
+          amount: amount,
+          donor_id: donorId,
+          notes: notesInput.value.trim() || 'Paid via Google Pay UPI',
+          upi_pin: currentPin,
+          payment_method: 'GPay'
+        };
+
+        const response = await fetch('/api/donations/gpay-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Payment failed to process');
+        }
+
+        createdDonation = data.donation;
+
+        // Hide processing, play success sound & show blue tick success screen
+        document.getElementById('gpay-processing-overlay').style.display = 'none';
+        showSuccessScreen(data);
+
+      } catch (err) {
+        document.getElementById('gpay-processing-overlay').style.display = 'none';
+        alert('Payment failed: ' + (err.message || 'Network error'));
+      }
+    }
+
+    function showSuccessScreen(data) {
+      playGPaySuccessChime();
+
+      const donation = data.donation;
+      document.getElementById('success-display-amount').textContent = '₹' + Number(donation.amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      
+      const now = new Date();
+      document.getElementById('success-date-time').textContent = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) + ', ' + now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
+      
+      const upiRef = 'UPI/' + now.getFullYear() + (now.getMonth()+1).toString().padStart(2,'0') + now.getDate().toString().padStart(2,'0') + '/' + Math.floor(100000000 + Math.random() * 900000000);
+      document.getElementById('success-upi-ref').textContent = upiRef;
+      
+      if (donation.block_hash) {
+        document.getElementById('success-block-hash').textContent = donation.block_hash.slice(0, 16) + '...';
+      }
+
+      document.getElementById('gpay-success-screen').style.display = 'flex';
+
+      // Countdown to redirect
+      let seconds = 3;
+      const countdownEl = document.getElementById('redirect-countdown');
+      countdownInterval = setInterval(() => {
+        seconds--;
+        if (countdownEl) countdownEl.textContent = seconds;
+        if (seconds <= 0) {
+          clearInterval(countdownInterval);
+          returnToDonorPage(true);
+        }
+      }, 1000);
+    }
+
+    function returnToDonorPage(isSuccess) {
+      if (countdownInterval) clearInterval(countdownInterval);
+
+      if (isSuccess && createdDonation) {
+        window.location.href = `/?payment=success&donation_id=${createdDonation.id}&amount=${createdDonation.amount}&status=Payment%20Successful`;
+      } else {
+        window.location.href = '/';
+      }
+    }
+  </script>
+
+</body>
+</html>
